@@ -1,14 +1,47 @@
 package naspter.model;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRequest {
-    public static FileStore fileStore = new FileStore();
+    public class NaspterPeer {
+        public String ip;
+        public String port;
+        public String folderPath;
+
+        public NaspterPeer(String ip, String port, String folderPath) {
+            this.ip = ip;
+            this.port = port;
+            this.folderPath = folderPath;
+        }
+    }
+
+    public class FileStore {
+        private Map<String, List<NaspterPeer>> fileMap;
+
+        public FileStore() {
+            this.fileMap = new HashMap<>();
+        }
+
+        public List<NaspterPeer> getPeers(String filename) {
+            return this.fileMap.get(filename);
+        }
+
+        public void addPeerToFile(String filename, NaspterPeer peer) {
+            List<NaspterPeer> peers = this.fileMap.get(filename);
+            if (peers == null) {
+                peers = new ArrayList<>();
+            }
+            peers.add(peer);
+            this.fileMap.put(filename, peers);
+        }
+    }
+
+    FileStore fileStore = new FileStore();
 
     private static final long serialVersionUID = 1L;
 
@@ -17,17 +50,21 @@ public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRe
     }
 
     @Override
-    public void join(String ip, String port, String folderPath) throws IOException {
-        NaspterPeer np = new NaspterPeer(ip, port, folderPath);
-        String path = Paths.get("files").resolve(folderPath).toString();
+    public String join(String ip, String port, String folder, List<String> files) {
+        try {
+            NaspterPeer np = new NaspterPeer(ip, port, folder);
 
-        // create the folder if it doesn't exist
-        Files.createDirectories(Paths.get(path));
+            for (String file : files) {
+                fileStore.addPeerToFile(file, np);
+            }
 
-        List<String> files = FileUtil.getAllFileNamesInDirectory(path);
+            String filesString = String.join(", ", files);
+            System.out.printf("Peer %s:%s adicionado com arquivos %s\n", ip, port, filesString);
 
-        for (String file : files) {
-            fileStore.addPeerToFile(file, np);
+            return "JOIN_OK";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "JOIN_ERROR";
         }
     }
 

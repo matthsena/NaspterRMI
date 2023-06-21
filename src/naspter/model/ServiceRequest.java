@@ -1,9 +1,10 @@
 package naspter.model;
 
 import java.rmi.Remote;
+import java.util.List;
 
 public interface ServiceRequest extends Remote {
-    public void join(String ip, String port, String folderPath) throws Exception;
+    public String join(String ip, String port, String folderPath, List<String> files) throws Exception;
 
     public void search(String fileName) throws Exception;
 
