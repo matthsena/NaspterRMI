@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRequest {
     public class NaspterPeer {
@@ -69,10 +70,19 @@ public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRe
     }
 
     @Override
-    public void search(String fileName) throws RemoteException {
-        fileStore.getPeers(fileName).forEach(peer -> {
-            System.out.println(peer.ip + ":" + peer.port);
-        });
+    public Map<String, String> search(String fileName) throws RemoteException {
+        List<NaspterPeer> peers = fileStore.getPeers(fileName);
+        Map<String, String> result = new HashMap<>();
+
+        if (!peers.isEmpty()) {
+            NaspterPeer randomPeer = peers.get(new Random().nextInt(peers.size()));
+            result.put(fileName, randomPeer.ip + ":" + randomPeer.port);
+        }
+
+        return result;
+        // fileStore.getPeers(fileName).forEach(peer -> {
+        // System.out.println(peer.ip + ":" + peer.port);
+        // });
     }
 
     @Override

@@ -1,14 +1,23 @@
 package naspter.peer;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import naspter.model.ServiceRequest;
 
@@ -29,6 +38,8 @@ public class Peer {
 
     Scanner scanner = new Scanner(System.in);
     String option;
+
+    Map<String, String> searchResults = new HashMap<>();
 
     do {
       System.out.println("\nEscolha uma opção:");
@@ -61,6 +72,20 @@ public class Peer {
             String filesString = String.join(", ", files);
 
             System.out.printf("Sou peer %s:%s com arquivos %s\n", ip, port, filesString);
+
+            try {
+              ServerSocket server = new ServerSocket(Integer.parseInt(port));
+
+              while (true) {
+                Socket node = server.accept();
+
+                PeerThread peerThread = new PeerThread(node);
+                peerThread.start();
+              }
+
+            } catch (Exception e) {
+              System.out.println(e);
+            }
           } else {
             System.out.println("\nJOIN FAIL");
           }
@@ -69,10 +94,43 @@ public class Peer {
         case "2":
           System.out.println("\nDigite o nome do arquivo que deseja pesquisar:");
           String fileName = scanner.nextLine();
-          serviceRequest.search(fileName);
+
+          searchResults = serviceRequest.search(fileName);
           break;
         case "3":
-          System.out.println("DOWNLOAD");
+          if (!searchResults.isEmpty()) {
+            Set<String> keySet = searchResults.keySet();
+            Iterator<String> iterator = keySet.iterator();
+
+            if (iterator.hasNext()) {
+              String file = iterator.next();
+
+              String[] fileData = searchResults.get(file).split(":");
+              String peerIp = fileData[0];
+              String peerPort = fileData[1];
+
+              Socket socket = new Socket(peerIp, Integer.parseInt(peerPort));
+
+              InputStream input = socket.getInputStream();
+              byte[] buffer = new byte[1024 * 1024];
+              FileOutputStream fileOutputStream = new FileOutputStream("files/download.png");
+              BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+
+              int bytesRead;
+
+              while ((bytesRead = input.read(buffer)) != -1) {
+                bufferedOutputStream.write(buffer, 0, bytesRead);
+              }
+
+              bufferedOutputStream.flush();
+              bufferedOutputStream.close();
+
+              System.out.println("\nArquivo baixado com sucesso");
+            }
+          } else {
+            System.out.println("\nNenhum arquivo encontrado");
+          }
+
           break;
         case "0":
           System.out.println("SAIR");
