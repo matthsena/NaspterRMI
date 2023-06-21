@@ -1,4 +1,4 @@
-package naspter.client;
+package naspter.peer;
 
 import java.io.IOException;
 import java.nio.file.Files;
