@@ -81,7 +81,7 @@ public class Peer {
               while (true) {
                 Socket node = server.accept();
 
-                PeerThread peerThread = new PeerThread(node);
+                PeerThread peerThread = new PeerThread(node, path);
                 peerThread.start();
               }
 
@@ -110,7 +110,7 @@ public class Peer {
               String[] fileData = searchResults.get(file).split(":");
               String peerIp = fileData[0];
               String peerPort = fileData[1];
-
+              System.out.println("\nBaixando arquivo " + file + " do peer " + peerIp + ":" + peerPort);
               Socket socket = new Socket(peerIp, Integer.parseInt(peerPort));
 
               OutputStream out = socket.getOutputStream();
@@ -119,7 +119,7 @@ public class Peer {
 
               InputStream input = socket.getInputStream();
               byte[] buffer = new byte[1024 * 1024];
-              FileOutputStream fileOutputStream = new FileOutputStream("files/download.png");
+              FileOutputStream fileOutputStream = new FileOutputStream("files/download-test.png");
               BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
               int bytesRead;

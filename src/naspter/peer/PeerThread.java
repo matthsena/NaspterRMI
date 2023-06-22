@@ -11,9 +11,11 @@ import java.net.Socket;
 
 public class PeerThread extends Thread {
   private Socket node = null;
+  private String path = null;
 
-  public PeerThread(Socket node) {
+  public PeerThread(Socket node, String path) {
     this.node = node;
+    this.path = path;
   }
 
   public void run() {
@@ -23,11 +25,9 @@ public class PeerThread extends Thread {
       BufferedReader strReader = new BufferedReader(new InputStreamReader(in));
 
       // Read the requested file path
-      String filePath = strReader.readLine();
+      String fileName = strReader.readLine();
 
-      System.out.println("File path: " + filePath);
-
-      File file = new File("files/teste/file.png");
+      File file = new File(this.path + "/" + fileName);
       FileInputStream fis = new FileInputStream(file);
       BufferedInputStream reader = new BufferedInputStream(fis);
 
