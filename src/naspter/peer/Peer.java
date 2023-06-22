@@ -1,9 +1,11 @@
 package naspter.peer;
 
 import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -111,6 +113,10 @@ public class Peer {
 
               Socket socket = new Socket(peerIp, Integer.parseInt(peerPort));
 
+              OutputStream out = socket.getOutputStream();
+              DataOutputStream writter = new DataOutputStream(out);
+              writter.writeBytes(file + '\n');
+
               InputStream input = socket.getInputStream();
               byte[] buffer = new byte[1024 * 1024];
               FileOutputStream fileOutputStream = new FileOutputStream("files/download.png");
@@ -124,6 +130,7 @@ public class Peer {
 
               bufferedOutputStream.flush();
               bufferedOutputStream.close();
+              socket.close();
 
               System.out.println("\nArquivo baixado com sucesso");
             }
