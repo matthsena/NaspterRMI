@@ -119,7 +119,7 @@ public class Peer {
 
               InputStream input = socket.getInputStream();
               byte[] buffer = new byte[1024 * 1024];
-              FileOutputStream fileOutputStream = new FileOutputStream("files/download-test.png");
+              FileOutputStream fileOutputStream = new FileOutputStream("files/" + file);
               BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
               int bytesRead;
