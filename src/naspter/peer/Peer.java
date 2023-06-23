@@ -75,19 +75,15 @@ public class Peer {
 
             System.out.printf("Sou peer %s:%s com arquivos %s\n", ip, port, filesString);
 
-            try {
-              ServerSocket server = new ServerSocket(Integer.parseInt(port));
-
-              while (true) {
+            new Thread(() -> {
+              try (ServerSocket server = new ServerSocket(Integer.parseInt(port))) {
                 Socket node = server.accept();
-
                 PeerThread peerThread = new PeerThread(node, path);
                 peerThread.start();
+              } catch (IOException e) {
+                System.out.println("An error occurred while opening the ServerSocket: " + e.getMessage());
               }
-
-            } catch (Exception e) {
-              System.out.println(e);
-            }
+            }).start();
           } else {
             System.out.println("\nJOIN FAIL");
           }
