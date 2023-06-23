@@ -14,12 +14,12 @@ import java.nio.file.Paths;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import naspter.model.ServiceRequest;
 
@@ -41,7 +41,11 @@ public class Peer {
     Scanner scanner = new Scanner(System.in);
     String option;
 
-    Map<String, String> searchResults = new HashMap<>();
+    Map<String, String> searchResults = new ConcurrentHashMap<>();
+
+    String ip_ = "";
+    int port_ = 0;
+    String folderName_ = "";
 
     do {
       System.out.println("\nEscolha uma opção:");
@@ -58,10 +62,14 @@ public class Peer {
           String ip = scanner.nextLine();
 
           System.out.println("\nDigite o numero da porta:");
-          String port = scanner.nextLine();
+          int port = Integer.parseInt(scanner.nextLine());
 
           System.out.println("\nDigite o nome da sua pasta:");
           String folderName = scanner.nextLine();
+
+          ip_ = ip;
+          port_ = port;
+          folderName_ = folderName;
 
           String path = Paths.get("files").resolve(folderName).toString();
           Files.createDirectories(Paths.get(path));
@@ -76,7 +84,8 @@ public class Peer {
             System.out.printf("Sou peer %s:%s com arquivos %s\n", ip, port, filesString);
 
             new Thread(() -> {
-              try (ServerSocket server = new ServerSocket(Integer.parseInt(port))) {
+
+              try (ServerSocket server = new ServerSocket(port)) {
                 Socket node = server.accept();
                 PeerThread peerThread = new PeerThread(node, path);
                 peerThread.start();
@@ -115,7 +124,7 @@ public class Peer {
 
               InputStream input = socket.getInputStream();
               byte[] buffer = new byte[1024 * 1024];
-              FileOutputStream fileOutputStream = new FileOutputStream("files/" + file);
+              FileOutputStream fileOutputStream = new FileOutputStream("files/" + folderName_ + "/" + file);
               BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
               int bytesRead;
@@ -127,6 +136,8 @@ public class Peer {
               bufferedOutputStream.flush();
               bufferedOutputStream.close();
               socket.close();
+
+              serviceRequest.update(ip_, port_, folderName_, file);
 
               System.out.println("\nArquivo baixado com sucesso");
             }

@@ -3,18 +3,24 @@ package naspter.model;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRequest {
+    private static final long serialVersionUID = 1L;
+
+    public ServiceRequestImpl() throws RemoteException {
+        super();
+    }
+
     public class NaspterPeer {
         public String ip;
-        public String port;
+        public int port;
         public String folderPath;
 
-        public NaspterPeer(String ip, String port, String folderPath) {
+        public NaspterPeer(String ip, int port, String folderPath) {
             this.ip = ip;
             this.port = port;
             this.folderPath = folderPath;
@@ -25,11 +31,15 @@ public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRe
         private Map<String, List<NaspterPeer>> fileMap;
 
         public FileStore() {
-            this.fileMap = new HashMap<>();
+            this.fileMap = new ConcurrentHashMap<>();
         }
 
-        public List<NaspterPeer> getPeers(String filename) {
+        public List<NaspterPeer> getPeersByFilename(String filename) {
             return this.fileMap.get(filename);
+        }
+
+        public Map<String, List<NaspterPeer>> getFileMap() {
+            return this.fileMap;
         }
 
         public void addPeerToFile(String filename, NaspterPeer peer) {
@@ -44,14 +54,8 @@ public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRe
 
     FileStore fileStore = new FileStore();
 
-    private static final long serialVersionUID = 1L;
-
-    public ServiceRequestImpl() throws RemoteException {
-        super();
-    }
-
     @Override
-    public String join(String ip, String port, String folder, List<String> files) {
+    public String join(String ip, int port, String folder, List<String> files) {
         try {
             NaspterPeer np = new NaspterPeer(ip, port, folder);
 
@@ -59,8 +63,7 @@ public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRe
                 fileStore.addPeerToFile(file, np);
             }
 
-            String filesString = String.join(", ", files);
-            System.out.printf("Peer %s:%s adicionado com arquivos %s\n", ip, port, filesString);
+            System.out.printf("Peer %s:%s adicionado com arquivos %s\n", ip, port, String.join(", ", files));
 
             return "JOIN_OK";
         } catch (Exception e) {
@@ -71,8 +74,8 @@ public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRe
 
     @Override
     public Map<String, String> search(String fileName) throws RemoteException {
-        List<NaspterPeer> peers = fileStore.getPeers(fileName);
-        Map<String, String> result = new HashMap<>();
+        List<NaspterPeer> peers = fileStore.getPeersByFilename(fileName);
+        Map<String, String> result = new ConcurrentHashMap<>();
 
         if (!peers.isEmpty()) {
             NaspterPeer randomPeer = peers.get(new Random().nextInt(peers.size()));
@@ -80,13 +83,22 @@ public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRe
         }
 
         return result;
-        // fileStore.getPeers(fileName).forEach(peer -> {
-        // System.out.println(peer.ip + ":" + peer.port);
-        // });
     }
 
     @Override
-    public void update(String fileName) throws RemoteException {
+    public void update(String ip, int port, String folder, String fileName) throws RemoteException {
+        NaspterPeer np = new NaspterPeer(ip, port, folder);
+        fileStore.addPeerToFile(fileName, np);
 
+        Map<String, List<NaspterPeer>> fileMap = fileStore.getFileMap();
+
+        System.out.println("Files associated with " + np + ":");
+        for (Map.Entry<String, List<NaspterPeer>> entry : fileMap.entrySet()) {
+            String file = entry.getKey();
+            List<NaspterPeer> peers = entry.getValue();
+            if (peers.contains(np)) {
+                System.out.println(file);
+            }
+        }
     }
 }

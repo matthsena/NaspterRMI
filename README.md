@@ -19,8 +19,16 @@ The `JAVA PROJECTS` view allows you to manage your dependencies. More details ca
 # NaspterRMI
 ## TO-DO
 - [x] Resolver o problema de não travar o menu assim que a thread é iniciada
-- [ ] Verificar hashtable concorrente
-- [ ] Salvar arquivo em pasta correta
+- [x] Verificar hashtable concorrente
+- [x] Salvar arquivo em pasta correta
 - [x] Salvar arquivo com nome certo
 - [ ] Refatorar o código
-- [ ] Fazer função update
+- [x] Fazer função update
+
+
+- questionar sobre qual pasta salvar caso nao tenha efetuado o join
+- questionar se pode utilizar a classe no model
+- perguntar sobre peer randomico e sobre possivel solução de fazer um loop
+- perguntar o que fazer quando porta ja estiver em uso (se devemos tratar esse erro)
+- perguntar sobre pasta files
+
