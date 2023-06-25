@@ -13,12 +13,9 @@ import java.nio.file.Paths;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import naspter.model.ServiceRequest;
 
@@ -38,13 +35,12 @@ public class Peer {
     ServiceRequest serviceRequest = (ServiceRequest) registry.lookup("rmi://127.0.0.1/serviceRequest");
 
     Scanner scanner = new Scanner(System.in);
+
     String option;
 
-    Map<String, String> searchResults = new ConcurrentHashMap<>();
-
-    String ip_ = "";
-    int port_ = 0;
-    String folderName_ = "";
+    ServiceRequest.NaspterPeer currentPeer = null;
+    List<ServiceRequest.NaspterPeer> searchResults = new ArrayList<>();
+    String lastSearchFile = "";
 
     do {
       System.out.println("\nEscolha uma opção:");
@@ -66,9 +62,7 @@ public class Peer {
           System.out.println("\nDigite o nome da sua pasta:");
           String folderName = scanner.nextLine();
 
-          ip_ = ip;
-          port_ = port;
-          folderName_ = folderName;
+          currentPeer = new ServiceRequest.NaspterPeer(ip, port, folderName);
 
           String path = Paths.get("files").resolve(folderName).toString();
           Files.createDirectories(Paths.get(path));
@@ -91,31 +85,27 @@ public class Peer {
           break;
         case "2":
           System.out.println("\nDigite o nome do arquivo que deseja pesquisar:");
-          String fileName = scanner.nextLine();
+          lastSearchFile = scanner.nextLine();
 
-          searchResults = serviceRequest.search(fileName);
+          searchResults = serviceRequest.search(lastSearchFile);
           break;
         case "3":
-          if (!searchResults.isEmpty()) {
-            Set<String> keySet = searchResults.keySet();
-            Iterator<String> iterator = keySet.iterator();
+          if (!searchResults.isEmpty() && currentPeer != null) {
+            ServiceRequest.NaspterPeer np = searchResults.get(new Random().nextInt(searchResults.size()));
 
-            if (iterator.hasNext()) {
-              String file = iterator.next();
+            if (!lastSearchFile.isEmpty()) {
 
-              String[] fileData = searchResults.get(file).split(":");
-              String peerIp = fileData[0];
-              String peerPort = fileData[1];
-              System.out.println("\nBaixando arquivo " + file + " do peer " + peerIp + ":" + peerPort);
-              Socket socket = new Socket(peerIp, Integer.parseInt(peerPort));
+              System.out.println("\nBaixando arquivo " + lastSearchFile + " do peer " + np.ip + ":" + np.port);
+              Socket socket = new Socket(np.ip, np.port);
 
               OutputStream out = socket.getOutputStream();
               DataOutputStream writter = new DataOutputStream(out);
-              writter.writeBytes(file + '\n');
+              writter.writeBytes(lastSearchFile + '\n');
 
               InputStream input = socket.getInputStream();
               byte[] buffer = new byte[1024 * 1024];
-              FileOutputStream fileOutputStream = new FileOutputStream("files/" + folderName_ + "/" + file);
+              FileOutputStream fileOutputStream = new FileOutputStream(
+                  "files/" + currentPeer.folderPath + "/" + lastSearchFile);
               BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
               int bytesRead;
@@ -128,7 +118,8 @@ public class Peer {
               bufferedOutputStream.close();
               socket.close();
 
-              serviceRequest.update(ip_, port_, folderName_, file);
+              String updated = serviceRequest.update(currentPeer.ip, currentPeer.port, currentPeer.folderPath,
+                  lastSearchFile);
 
               System.out.println("\nArquivo baixado com sucesso");
             }
