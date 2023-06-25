@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,16 +82,8 @@ public class Peer {
 
             System.out.printf("Sou peer %s:%s com arquivos %s\n", ip, port, filesString);
 
-            new Thread(() -> {
-
-              try (ServerSocket server = new ServerSocket(port)) {
-                Socket node = server.accept();
-                PeerThread peerThread = new PeerThread(node, path);
-                peerThread.start();
-              } catch (IOException e) {
-                System.out.println("An error occurred while opening the ServerSocket: " + e.getMessage());
-              }
-            }).start();
+            PeerThread peerThread = new PeerThread(port, path);
+            peerThread.start();
           } else {
             System.out.println("\nJOIN FAIL");
           }
