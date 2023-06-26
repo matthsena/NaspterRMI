@@ -169,7 +169,7 @@ public class Peer {
 
               // Chama o método remoto UPDATE para atualizar o servidor
               // que esse peer possui o arquivo
-              String updated = serviceRequest.update(currentPeer, lastSearchFile);
+              serviceRequest.update(currentPeer, lastSearchFile);
 
               System.out.printf("\nArquivo %s baixado com sucesso na pasta %s\n", lastSearchFile,
                   currentPeer.folderPath);
