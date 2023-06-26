@@ -22,7 +22,11 @@ public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRe
         }
 
         public List<NaspterPeer> getPeersByFilename(String filename) {
-            return this.fileMap.get(filename);
+            List<NaspterPeer> peers = this.fileMap.get(filename);
+            if (peers == null) {
+                return null;
+            }
+            return peers;
         }
 
         public void addPeerToFile(String filename, NaspterPeer peer) {
