@@ -19,7 +19,7 @@ public interface ServiceRequest extends Remote {
 
     public String join(String ip, int port, String folderPath, List<String> files) throws Exception;
 
-    public List<NaspterPeer> search(String fileName) throws Exception;
+    public List<NaspterPeer> search(NaspterPeer currentPeer, String fileName) throws Exception;
 
     public String update(String ip, int port, String folder, String fileName) throws Exception;
 }

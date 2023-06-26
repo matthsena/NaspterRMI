@@ -74,7 +74,7 @@ public class Peer {
           if (joinStatus.equals("JOIN_OK")) {
             String filesString = String.join(", ", files);
 
-            System.out.printf("Sou peer %s:%s com arquivos %s\n", ip, port, filesString);
+            System.out.printf("\nSou peer %s:%s com arquivos %s\n", ip, port, filesString);
 
             PeerThread peerThread = new PeerThread(port, path);
             peerThread.start();
@@ -84,18 +84,24 @@ public class Peer {
 
           break;
         case "2":
-          System.out.println("\nDigite o nome do arquivo que deseja pesquisar:");
-          lastSearchFile = scanner.nextLine();
+          if (currentPeer != null) {
+            System.out.println("\nDigite o nome do arquivo que deseja pesquisar:");
+            lastSearchFile = scanner.nextLine();
 
-          searchResults = serviceRequest.search(lastSearchFile);
+            searchResults = serviceRequest.search(currentPeer, lastSearchFile);
+
+            System.out.println("\npeers com o arquivo solicitado:");
+
+            for (ServiceRequest.NaspterPeer np : searchResults) {
+              System.out.println(np.ip + ":" + np.port);
+            }
+          }
           break;
         case "3":
           if (!searchResults.isEmpty() && currentPeer != null) {
             ServiceRequest.NaspterPeer np = searchResults.get(new Random().nextInt(searchResults.size()));
 
             if (!lastSearchFile.isEmpty()) {
-
-              System.out.println("\nBaixando arquivo " + lastSearchFile + " do peer " + np.ip + ":" + np.port);
               Socket socket = new Socket(np.ip, np.port);
 
               OutputStream out = socket.getOutputStream();
@@ -121,7 +127,8 @@ public class Peer {
               String updated = serviceRequest.update(currentPeer.ip, currentPeer.port, currentPeer.folderPath,
                   lastSearchFile);
 
-              System.out.println("\nArquivo baixado com sucesso");
+              System.out
+                  .printf("\nArquivo %s baixado com sucesso na pasta %s\n", lastSearchFile, currentPeer.folderPath);
             }
           } else {
             System.out.println("\nNenhum arquivo encontrado");

@@ -52,16 +52,14 @@ public class PeerThread extends Thread {
             contents = new byte[size];
             reader.read(contents, 0, size);
             output.write(contents);
-            System.out.print("Sending file ... " + (current * 100) / fileLength + "% complete!\n");
+            // System.out.print("Enviando ... " + (current * 100) / fileLength + "%
+            // completo!\n");
           }
 
           output.flush();
           node.close();
 
-          System.out.println("File sent successfully!");
-
           reader.close();
-
         } catch (Exception e) {
           // TODO: handle exception
           System.out.println(e.getMessage());

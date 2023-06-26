@@ -56,7 +56,9 @@ public class ServiceRequestImpl extends UnicastRemoteObject implements ServiceRe
     }
 
     @Override
-    public List<NaspterPeer> search(String fileName) throws RemoteException {
+    public List<NaspterPeer> search(NaspterPeer currentPeer, String fileName) throws RemoteException {
+        System.out.printf("Peer %s:%s solicitou arquivo %s\n", currentPeer.ip, currentPeer.port, fileName);
+
         return fileStore.getPeersByFilename(fileName);
     }
 
