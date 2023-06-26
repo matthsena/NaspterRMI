@@ -86,7 +86,7 @@ public class Peer {
           List<String> files = getFileNames(path);
 
           // Faz o JOIN desse peer no servidor
-          String joinStatus = serviceRequest.join(ip, port, folderName, files);
+          String joinStatus = serviceRequest.join(currentPeer, files);
 
           // Verifica se o peer foi registrado com sucesso
           if (joinStatus.equals("JOIN_OK")) {
@@ -169,8 +169,7 @@ public class Peer {
 
               // Chama o método remoto UPDATE para atualizar o servidor
               // que esse peer possui o arquivo
-              String updated = serviceRequest.update(currentPeer.ip, currentPeer.port, currentPeer.folderPath,
-                  lastSearchFile);
+              String updated = serviceRequest.update(currentPeer, lastSearchFile);
 
               System.out.printf("\nArquivo %s baixado com sucesso na pasta %s\n", lastSearchFile,
                   currentPeer.folderPath);

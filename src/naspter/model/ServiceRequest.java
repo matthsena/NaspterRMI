@@ -5,6 +5,7 @@ import java.rmi.Remote;
 import java.util.List;
 
 public interface ServiceRequest extends Remote {
+    // Obj do Peer
     public class NaspterPeer implements Serializable {
         public String ip;
         public int port;
@@ -17,9 +18,9 @@ public interface ServiceRequest extends Remote {
         }
     }
 
-    public String join(String ip, int port, String folderPath, List<String> files) throws Exception;
+    public String join(NaspterPeer np, List<String> files) throws Exception;
 
     public List<NaspterPeer> search(NaspterPeer currentPeer, String fileName) throws Exception;
 
-    public String update(String ip, int port, String folder, String fileName) throws Exception;
+    public String update(NaspterPeer np, String fileName) throws Exception;
 }
